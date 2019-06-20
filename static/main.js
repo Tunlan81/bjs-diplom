@@ -43,16 +43,11 @@ class Profile {
     }
 }
 
-let rates = getStocks();       
-
-function getStocks() {
+function getStocks(callback) {
     return ApiConnector.getStocks((err, data) => {
-        if (err) {
-                console.error('Error during rates download');
-        } else {
-                console.log(`Here are the rates`);
-                rates = data;
-        }});
+                console.log(`Downloading the rates`);
+                callback(err, data);
+        });
 }
 
 function main() {
@@ -66,70 +61,62 @@ function main() {
                     username: 'petr',
                     name: { firstName: 'Petr', lastName: 'Barashev' },
                     password: 'petrspass',
-                });          
+                });
                 
+
+            
     Ivan.createUser( Ivan, (err, data) => {
         if (err) {
-                console.error('Failed to create user Ivan');
+            console.error('Failed to create user Ivan');
         } else {
-                console.log(`Created user Ivan`);
-        }});
+            console.log(`Created user Ivan`);
 
-    setTimeout(function() {
             Ivan.performLogin({ username: Ivan.username, password: Ivan.password}, (err, data) => {
-        if (err) {
-                console.error('Failed login with Ivan');
-        } else {
-                console.log(`Successful login with Ivan`);
-        }});
-    }, 5000);
-   
-    
-    setTimeout(function() {
-    
-        Ivan.addMoney({ currency: 'EUR', amount: 500000 }, (err, data) => {
-        if (err) {
-                console.error('Error during adding money to Ivan');
-        } else {
-                console.log(`Added 500000 euros to Ivan`);
-        }});
-    }, 10000);
-    
-    let targetAmount;
+                if (err) {
+                    console.error('Failed login with Ivan');
+                } else {
+                    console.log(`Successful login with Ivan`);
 
-    setTimeout(function() {
-        let index = Math.floor(Math.random() * 100);
-        targetAmount = 500000 * rates[index].EUR_NETCOIN;
-    }, 5000);
-    
-    setTimeout(function() {
-    
-        Ivan.convertMoney({ fromCurrency: 'EUR', targetCurrency: 'NETCOIN', targetAmount: targetAmount }, (err, data) => {
-            if (err) {
-                    console.error(`Failed to convert`);
-            } else {
-                    console.log(`Converted EUR to NETCOIN`);
-            }}); 
-    }, 15000);
+                    Ivan.addMoney({ currency: 'EUR', amount: 500000 }, (err, data) => {
+                        if (err) {
+                            console.error('Error during adding money to Ivan');
+                        } else {
+                            console.log(`Added 500000 euros to Ivan`);
 
-    Petr.createUser( Petr, (err, data) => {
-        if (err) {
-                console.error('Failed to create user Petr');
-        } else {
-                console.log(`Created user Petr`);
-        }});
+                            getStocks((err, rates) => {
+                                if (err) {
+                                    console.error('Error during rates download');
+                                } else {
+                                    console.log(`Here are the rates`);
+                                    
+                                    let targetAmount = 500000 * rates[99].EUR_NETCOIN;
+                                    console.log(rates[99].EUR_NETCOIN);
+                                    console.log(targetAmount);
 
-    setTimeout(function() {
-    
-        Ivan.transferMoney({ to: 'petr', amount: targetAmount }, (err, data) => {
-            if (err) {
-                    console.error(`Failed to transfer money`);
-            } else {
-                    console.log(`Transfered money`);
-            }});   
-    }, 20000);
+                                    Ivan.convertMoney({ fromCurrency: 'EUR', targetCurrency: 'NETCOIN', targetAmount: targetAmount }, (err, data) => {
+                                        if (err) {
+                                            console.error(`Failed to convert`);
+                                        } else {
+                                            console.log(`Converted EUR to NETCOIN`);
 
-    return;
+                                            Petr.createUser( Petr, (err, data) => {
+                                                if (err) {
+                                                    console.error('Failed to create user Petr');
+                                                } else {
+                                                    console.log(`Created user Petr`);
+
+                                                    Ivan.transferMoney({ to: 'petr', amount: targetAmount }, (err, data) => {
+                                                        if (err) {
+                                                            console.error(`Failed to transfer money`);
+                                                        } else {
+                                                            console.log(`Transfered money`);
+                                                    }}); 
+                                            }});
+                                    }}); 
+                            }});
+                    }});
+            }});
+    }});    
 }
 
 main();
